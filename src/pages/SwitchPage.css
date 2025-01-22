@@ -1,0 +1,44 @@
+.SwitchPage-description {
+  margin: 0 auto;
+  max-width: 500px;
+}
+
+.SwitchPage-modeSelect {
+  margin-top: 2rem;
+}
+
+.SwitchPage-modeSelect > label {
+  margin-left: 1rem;
+}
+
+.SwitchPage-board {
+  margin: 2rem 0;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.SwitchPage-board input {
+  width: 5rem;
+  height: 5rem;
+}
+
+.SwitchPage-resetButton {
+  cursor: pointer;
+  padding: 0.25rem 0.75rem;
+  font-size: 1rem;
+  margin-left: 3rem;
+}
+
+.SwitchPage-hint {
+  outline: 8px solid green;
+}
+
+.Switchpage-nohint {
+  outline: 8px solid transparent;
+}
+
+.SwitchPage-stepsLeft {
+  font-size: 1.5rem;
+  margin-top: 0.5rem;
+}

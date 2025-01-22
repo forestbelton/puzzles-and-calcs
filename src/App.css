@@ -1,0 +1,14 @@
+.App {
+  display: flex;
+}
+
+.App-nav {
+  padding-left: 2rem;
+}
+
+.App-divider {
+  background-color: white;
+  margin: 0 2rem;
+  width: 2px;
+  height: 100vh;
+}
