@@ -6,6 +6,15 @@
   padding-left: 2rem;
 }
 
+.App-navlist {
+  list-style-type: none;
+  padding: 0;
+}
+
+.App-navlist li {
+  margin-bottom: 0.5rem;
+}
+
 .App-divider {
   background-color: white;
   margin: 0 2rem;

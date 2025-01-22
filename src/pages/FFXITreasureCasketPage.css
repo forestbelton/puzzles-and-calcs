@@ -1,0 +1,91 @@
+.FFXITreasureCasketPage-content {
+  display: flex;
+}
+
+.FFXITreasureCasketPage-description {
+  margin-bottom: 2rem;
+  max-width: 500px;
+}
+
+.FFXITreasureCasketPage-content input,
+.FFXITreasureCasketPage-content button,
+.FFXITreasureCasketPage-content select,
+.FFXITreasureCasketPage-content textarea {
+  font-family: inherit;
+  font-size: inherit;
+  padding: 0.4em;
+  margin: 0 0 0.5em 0;
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+  border-radius: 2px;
+}
+
+.FFXITreasureCasketPage-content input[type="number"] {
+  display: inline-block;
+  min-width: 3.25rem;
+}
+
+.FFXITreasureCasketPage-content button {
+  cursor: pointer;
+}
+
+.FFXITreasureCasketPage-matrix {
+  border: 2px solid #ccc;
+  border-radius: 2px;
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+  max-width: 525px;
+  padding: 0.5rem;
+}
+
+.FFXITreasureCasketPage-choice {
+  flex: 1 0 9%;
+  padding-right: 0.25rem;
+}
+
+.FFXITreasureCasketPage-label {
+  display: inline-block;
+  font-weight: bold;
+  min-width: 5rem;
+}
+
+.FFXITreasureCasketPage-digit {
+  display: inline-block;
+  margin-right: 0.5rem;
+}
+
+.FFXITreasureCasketPage-stats-label {
+  font-weight: bold;
+  min-width: 5rem;
+}
+
+.FFXITreasureCasketPage-label,
+.FFXITreasureCasketPage-constraints-label {
+  font-weight: bold;
+  margin-bottom: 0.25rem;
+  margin-top: 1rem;
+}
+
+.FFXITreasureCasketPage-constraints-label {
+  margin-top: 0;
+}
+
+.FFXITreasureCasketPage-v-pad {
+  margin-bottom: 1rem;
+}
+
+.FFXITreasureCasketPage-h-pad {
+  margin-left: 1rem;
+}
+
+.FFXITreasureCasketPage-reset-btn {
+  margin-top: 1rem !important;
+}
+
+.FFXITreasureCasketPage-between > input,
+.FFXITreasureCasketPage-one-is > input {
+  display: inline-block;
+  max-width: 3rem;
+  max-height: 1.5rem;
+}
