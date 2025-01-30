@@ -5,6 +5,7 @@ import HomePage from "./pages/HomePage";
 import FFXITreasureCasketPage from "./pages/solver/FFXITreasureCasketPage";
 import SwitchPage from "./pages/solver/SwitchPage";
 import NotFoundPage from "./pages/NotFoundPage";
+import ClassicZeldaLootPage from "./pages/calculator/ClassicZeldaLootPage";
 
 const App = () => {
   return (
@@ -41,6 +42,7 @@ const App = () => {
             path="/ffxi-treasure-casket"
             component={FFXITreasureCasketPage}
           />
+          <Route path="/classic-zelda-loot" component={ClassicZeldaLootPage} />
           <Route path="/" component={HomePage} />
           <Route component={NotFoundPage} />
         </Switch>
