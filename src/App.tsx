@@ -1,9 +1,10 @@
 import { Link, Route, Router, Switch } from "wouter";
 import { useHashLocation } from "wouter/use-hash-location";
-import SwitchPage from "./pages/SwitchPage";
 import "./App.css";
 import HomePage from "./pages/HomePage";
-import FFXITreasureCasketPage from "./pages/FFXITreasureCasketPage";
+import FFXITreasureCasketPage from "./pages/solver/FFXITreasureCasketPage";
+import SwitchPage from "./pages/solver/SwitchPage";
+import NotFoundPage from "./pages/NotFoundPage";
 
 const App = () => {
   return (
@@ -11,14 +12,25 @@ const App = () => {
       <div className="App">
         <nav className="App-nav">
           <h2>
-            <Link href="/">Puzzles</Link>
+            <Link href="/">
+              Puzzle Solvers
+              <br />
+              &amp; Calculators
+            </Link>
           </h2>
+          <h3>Solvers</h3>
           <ul className="App-navlist">
             <li>
               <Link href="/switch">Switch</Link>
             </li>
             <li>
               <Link href="/ffxi-treasure-casket">FFXI Treasure Casket</Link>
+            </li>
+          </ul>
+          <h3>Calculators</h3>
+          <ul className="App-navlist">
+            <li>
+              <Link href="/classic-zelda-loot">Classic Zelda Loot</Link>
             </li>
           </ul>
         </nav>
@@ -29,7 +41,8 @@ const App = () => {
             path="/ffxi-treasure-casket"
             component={FFXITreasureCasketPage}
           />
-          <Route component={HomePage} />
+          <Route path="/" component={HomePage} />
+          <Route component={NotFoundPage} />
         </Switch>
       </div>
     </Router>
