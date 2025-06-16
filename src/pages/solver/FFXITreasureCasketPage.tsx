@@ -127,11 +127,26 @@ const Digit = ({ digits, updateDigits }: DigitProps) => {
         ))}
       </div>
       <div>
-        <button onClick={setEvens}>Even</button>
+        <button
+          onClick={setEvens}
+          className="m-2 px-4 py-2 bg-gray-400 hover:bg-gray-500 text-white rounded"
+        >
+          Even
+        </button>
         &nbsp;
-        <button onClick={setOdds}>Odd</button>
+        <button
+          onClick={setOdds}
+          className="m-2 px-4 py-2 bg-gray-400 hover:bg-gray-500 text-white rounded"
+        >
+          Odd
+        </button>
         &nbsp;
-        <button onClick={clear}>Clear</button>
+        <button
+          onClick={clear}
+          className="m-2 px-4 py-2 bg-gray-400 hover:bg-gray-500 text-white rounded"
+        >
+          Clear
+        </button>
       </div>
     </>
   );
@@ -195,8 +210,8 @@ const FFXITreasureCasketPage = () => {
   const resetState = () => setState(newState);
 
   return (
-    <div>
-      <h1>FFXI Treasure Casket</h1>
+    <div className="py-6">
+      <h1 className="text-3xl font-bold mb-6">FFXI Treasure Casket</h1>
       <p className="FFXITreasureCasketPage-description">
         Apply treasure casket clues to narrow the possible answer set until you
         can safely guess with the remaining attempts!
@@ -260,7 +275,7 @@ const FFXITreasureCasketPage = () => {
           <div className="FFXITreasureCasketPage-label">Second digit</div>
           <Digit digits={state.oneDigits} updateDigits={updateOnes} />
           <button
-            className="FFXITreasureCasketPage-reset-btn"
+            className="m-2 px-4 py-2 bg-gray-400 hover:bg-gray-500 text-white rounded"
             onClick={resetState}
           >
             Reset
