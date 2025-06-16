@@ -1,6 +1,5 @@
 import { Link, Route, Router, Switch } from "wouter";
 import { useHashLocation } from "wouter/use-hash-location";
-import "./App.css";
 import HomePage from "./pages/HomePage";
 import FFXITreasureCasketPage from "./pages/solver/FFXITreasureCasketPage";
 import SwitchPage from "./pages/solver/SwitchPage";
@@ -11,17 +10,17 @@ import KenKenPage from "./pages/solver/KenKenPage";
 const App = () => {
   return (
     <Router hook={useHashLocation}>
-      <div className="App">
-        <nav className="App-nav">
-          <h2>
+      <div className="flex">
+        <nav className="pl-4">
+          <h2 className="text-2xl font-bold my-4">
             <Link href="/">
               Puzzle Solvers
               <br />
               &amp; Calculators
             </Link>
           </h2>
-          <h3>Solvers</h3>
-          <ul className="App-navlist">
+          <h3 className="font-bold">Solvers</h3>
+          <ul className="mb-4">
             <li>
               <Link href="/switch">Switch</Link>
             </li>
@@ -32,14 +31,14 @@ const App = () => {
               <Link href="/kenken">KenKen</Link>
             </li>
           </ul>
-          <h3>Calculators</h3>
-          <ul className="App-navlist">
+          <h3 className="font-bold">Calculators</h3>
+          <ul>
             <li>
               <Link href="/classic-zelda-loot">Classic Zelda Loot</Link>
             </li>
           </ul>
         </nav>
-        <div className="App-divider"></div>
+        <div className="bg-white mx-6" style={{ width: 2, height: "100vh" }} />
         <Switch>
           <Route path="/switch" component={SwitchPage} />
           <Route
