@@ -1,5 +1,4 @@
 import { useState } from "react";
-import "./ClassicZeldaLootPage.css";
 
 enum LootItem {
   HEART,
@@ -17,13 +16,23 @@ enum EnemyCategory {
   D,
 }
 
-const ITEM_CLASSNAMES: Record<LootItem, string> = {
-  [LootItem.HEART]: "ClassicZeldaLootPage-ItemHeart",
-  [LootItem.BOMB]: "ClassicZeldaLootPage-ItemBomb",
-  [LootItem.RUPEE1]: "ClassicZeldaLootPage-ItemRupee1",
-  [LootItem.RUPEE5]: "ClassicZeldaLootPage-ItemRupee5",
-  [LootItem.FAIRY]: "ClassicZeldaLootPage-ItemFairy",
-  [LootItem.MAGICAL_CLOCK]: "ClassicZeldaLootPage-ItemMagicalClock",
+const BASE_ITEM_STYLE: React.CSSProperties = {
+  backgroundImage: "url(/puzzles-and-calcs/zelda-item-spritesheet.png)",
+  backgroundPositionY: 0,
+  backgroundSize: "cover",
+  imageRendering: "pixelated",
+  width: 64,
+  height: 64,
+  margin: "0 1rem",
+};
+
+const ITEM_OFFSETS: Record<LootItem, number> = {
+  [LootItem.HEART]: 0,
+  [LootItem.BOMB]: -64,
+  [LootItem.RUPEE1]: -128,
+  [LootItem.RUPEE5]: -192,
+  [LootItem.FAIRY]: -256,
+  [LootItem.MAGICAL_CLOCK]: -320,
 };
 
 const CATEGORY_DROPS: Record<EnemyCategory, LootItem[]> = {
@@ -96,67 +105,69 @@ const ClassicZeldaLootPage = () => {
   };
 
   return (
-    <div>
-      <h1>Classic Zelda Loot</h1>
-      <p className="ClassicZeldaLootPage-description">
+    <div className="py-6">
+      <h1 className="text-3xl font-bold mb-6">Classic Zelda Loot</h1>
+      <p className="max-w-xl my-4">
         In the Legend of Zelda, which item is dropped by an enemy is
         deterministic. This is calculated based on two counters: the{" "}
         <b>kill counter</b> (0-9) and the <b>forced item drop counter</b>{" "}
         (0-10).
       </p>
-      <p className="ClassicZeldaLootPage-description">
+      <p className="max-w-xl my-4 mb-8">
         Both counters increment on a kill, but the forced item drop counter will
         reset if Link takes damage. If an item drop occurs and the forced item
         drop counter is 10, the forced item drops instead of the one that would
         regularly drop.
       </p>
-      <div className="ClassicZeldaLootPage-Field">
-        <label className="ClassicZeldaLootPage-Label">Kill Counter</label>
+      <div>
+        <label className="inline-block font-bold" style={{ minWidth: "11rem" }}>
+          Kill Counter
+        </label>
         &nbsp; {kills}
       </div>
-      <div className="ClassicZeldaLootPage-Field">
-        <label className="ClassicZeldaLootPage-Label">
+      <div>
+        <label className="inline-block font-bold" style={{ minWidth: "11rem" }}>
           Forced Item Counter
         </label>
         &nbsp; {force}
       </div>
-      <div>
+      <div className="mt-8 mb-4 flex justify-center">
         <button
           type="button"
-          className="ClassicZeldaLootPage-Button"
+          className="m-2 px-4 py-2 bg-gray-400 hover:bg-gray-500 text-white rounded"
           onClick={onIncrement}
         >
           Increment
         </button>
         <button
           type="button"
-          className="ClassicZeldaLootPage-Button"
+          className="m-2 px-4 py-2 bg-gray-400 hover:bg-gray-500 text-white rounded"
           onClick={onReset}
         >
           Reset Forced
         </button>
         <button
           type="button"
-          className="ClassicZeldaLootPage-Button"
+          className="m-2 px-4 py-2 bg-gray-400 hover:bg-gray-500 text-white rounded"
           onClick={onFullReset}
         >
           Full Reset
         </button>
       </div>
-      <div>
-        <table className="ClassicZeldaLootPage-DropTable">
+      <div className="flex justify-center">
+        <table>
           <thead>
             <tr>
-              <th>
+              <th className="pb-4">
                 <b>A</b>
               </th>
-              <th>
+              <th className="pb-4">
                 <b>B</b>
               </th>
-              <th>
+              <th className="pb-4">
                 <b>C</b>
               </th>
-              <th>
+              <th className="pb-4">
                 <b>D</b>
               </th>
             </tr>
@@ -166,7 +177,12 @@ const ClassicZeldaLootPage = () => {
               {[
                 Object.values(CATEGORY_DROPS).map((table, i) => (
                   <td key={i}>
-                    <div className={ITEM_CLASSNAMES[table[kills]]} />
+                    <div
+                      style={{
+                        ...BASE_ITEM_STYLE,
+                        backgroundPositionX: ITEM_OFFSETS[table[kills]],
+                      }}
+                    />
                   </td>
                 )),
               ]}
