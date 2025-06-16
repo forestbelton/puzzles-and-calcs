@@ -1,6 +1,5 @@
 import { ChangeEvent, useState, MouseEvent } from "react";
 import memoizedPuzzle from "./memoized-switch-puzzles.json";
-import "./SwitchPage.css";
 
 type PuzzleMove = {
   xy: number[] | null;
@@ -125,7 +124,11 @@ const SwitchPage = () => {
           data-x={x}
           data-y={y}
           onChange={onCellChange}
-          className={hint ? "SwitchPage-hint" : "SwitchPage-nohint"}
+          className={
+            "m-1 w-[5rem] h-[5rem] ring-4 " +
+            (mode === "EDITING" || hint ? "cursor-pointer " : "") +
+            (hint ? "ring-green-300" : "ring-transparent")
+          }
         />
       );
     }
@@ -133,47 +136,56 @@ const SwitchPage = () => {
   }
 
   return (
-    <div>
-      <h1>Switch Puzzle Solver</h1>
-      <p className="SwitchPage-description">
+    <div className="py-6">
+      <h1 className="text-3xl font-bold mb-6">Switch Puzzle Solver</h1>
+      <p className="mb-6 max-w-lg">
         Set up the board state in editing mode. Then switch to solving mode and
         click on the highlighted cells to see the path to the solution!
       </p>
-      <div className="SwitchPage-modeSelect">
-        <b>Mode:</b>
-        <label htmlFor="mode-editing">Editing</label>
-        <input
-          type="radio"
-          id="mode-editing"
-          name="mode"
-          value="EDITING"
-          onChange={onModeChange}
-          checked={mode === "EDITING"}
-        />
-        <label htmlFor="mode-solving">Solving</label>
-        <input
-          type="radio"
-          id="mode-solving"
-          name="mode"
-          value="SOLVING"
-          onChange={onModeChange}
-          checked={mode === "SOLVING"}
-        />
+      <div className="flex justify-between items-center">
+        <div>
+          <b className="mr-4">Mode:</b>
+          <label htmlFor="mode-editing" className="mr-2">
+            Editing
+          </label>
+          <input
+            type="radio"
+            id="mode-editing"
+            name="mode"
+            value="EDITING"
+            onChange={onModeChange}
+            checked={mode === "EDITING"}
+            className="mr-8"
+          />
+          <label htmlFor="mode-solving" className="mr-2">
+            Solving
+          </label>
+          <input
+            type="radio"
+            id="mode-solving"
+            name="mode"
+            value="SOLVING"
+            onChange={onModeChange}
+            checked={mode === "SOLVING"}
+          />
+        </div>
         <button
-          className="SwitchPage-resetButton"
+          className="m-2 px-4 py-2 bg-gray-400 hover:bg-gray-500 text-white rounded"
           type="button"
           onClick={onResetBoard}
         >
           Reset
         </button>
       </div>
-      <div className="SwitchPage-board">
-        {...grid}
-        {mode === "SOLVING" ? (
-          <div className="SwitchPage-stepsLeft">
-            {(nextCell && nextCell.steps) || 0} steps left
-          </div>
-        ) : null}
+      <div className="my-8 flex justify-center">
+        <div className="inline-flex flex-col items-center">
+          {...grid}
+          {mode === "SOLVING" ? (
+            <div className="text-xl font-bold mt-4">
+              {(nextCell && nextCell.steps) || 0} steps left
+            </div>
+          ) : null}
+        </div>
       </div>
     </div>
   );
