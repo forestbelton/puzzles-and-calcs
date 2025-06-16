@@ -1,20 +1,19 @@
 import { useState, useRef, useEffect } from "react";
-import { Plus, Minus, X, Divide, Trash2, RotateCcw } from "lucide-react";
-import "./KenKenPage.css";
-
-type Cell = {
-  row: number;
-  col: number;
-};
-
-const cellEquals = (a: Cell, b: Cell) => a.col === b.col && a.row === b.row;
-
-type Partition = {
-  id: number;
-  cells: Cell[];
-  target: number;
-  operator: string | null;
-};
+import { Trash2, RotateCcw } from "lucide-react";
+import {
+  ALL_OPERATORS,
+  OPERATOR_SYMBOLS,
+  OperatorButton,
+} from "./kenken/Operator";
+import {
+  areaCellsConnected,
+  Cell,
+  cellEquals,
+  deletePartition,
+  Operator,
+  Partition,
+  partitionForCell,
+} from "./kenken/types";
 
 type EditorState = {
   nextId?: number;
@@ -30,13 +29,6 @@ export const emptyState = (): EditorState => ({
 type Props = {
   state: EditorState;
   onChange?: (state: EditorState) => void;
-};
-
-const getPartitionForCell = (state: EditorState, row: number, col: number) => {
-  const target = { row, col };
-  return state.partitions.find((partition) =>
-    partition.cells.some((cell: Cell) => cellEquals(target, cell))
-  );
 };
 
 const PARTITION_COLORS = [
@@ -56,94 +48,11 @@ const PARTITION_COLORS = [
 const getPartitionColor = (partition: Partition) =>
   PARTITION_COLORS[partition.id % PARTITION_COLORS.length];
 
-// Get operator symbol
-const getOperatorSymbol = (operator: string) => {
-  switch (operator) {
-    case "+":
-      return "+";
-    case "-":
-      return "−";
-    case "*":
-      return "×";
-    case "/":
-      return "÷";
-    default:
-      return operator;
-  }
-};
-
-// Check if selected cells form a connected region
-const areaCellsConnected = (cells: Cell[]) => {
-  if (cells.length <= 1) return true;
-
-  // Use BFS to check if all cells are reachable from the first cell
-  const visited = new Set();
-  const queue = [cells[0]];
-  visited.add(`${cells[0].row},${cells[0].col}`);
-
-  const cellSet = new Set(cells.map((cell) => `${cell.row},${cell.col}`));
-
-  while (queue.length > 0) {
-    const current = queue.shift();
-    if (typeof current === "undefined") {
-      break;
-    }
-
-    // Check all 4 adjacent cells
-    const adjacent = [
-      { row: current.row - 1, col: current.col },
-      { row: current.row + 1, col: current.col },
-      { row: current.row, col: current.col - 1 },
-      { row: current.row, col: current.col + 1 },
-    ];
-
-    for (const adj of adjacent) {
-      const adjKey = `${adj.row},${adj.col}`;
-      if (cellSet.has(adjKey) && !visited.has(adjKey)) {
-        visited.add(adjKey);
-        queue.push(adj);
-      }
-    }
-  }
-
-  return visited.size === cells.length;
-};
-
-type OperatorProps = {
-  disabled: boolean;
-  currentOperation: string;
-  onNewOperation: (op: string) => void;
-  op: string;
-  icon: React.ReactNode;
-};
-
-const Operator = ({
-  currentOperation,
-  disabled,
-  icon,
-  onNewOperation,
-  op,
-}: OperatorProps) => (
-  <button
-    onClick={() => onNewOperation(op)}
-    disabled={disabled}
-    className={`px-3 py-2 rounded ${
-      disabled
-        ? "bg-gray-400 text-gray-500 cursor-not-allowed"
-        : currentOperation === op
-        ? "bg-blue-600"
-        : "bg-gray-300 text-black hover:text-white hover:bg-blue-400"
-    }`}
-  >
-    {icon}
-  </button>
-);
-
 const KenKenEditor = ({ state, onChange }: Props) => {
   const [selectedCells, setSelectedCells] = useState<Cell[]>([]);
   const [isSelecting, setIsSelecting] = useState(false);
   const [dragStart, setDragStart] = useState<Cell | null>(null);
-  const [currentOperation, setCurrentOperation] = useState("+");
+  const [currentOperation, setCurrentOperation] = useState(Operator.ADD);
   const [currentTarget, setCurrentTarget] = useState("");
   const boardRef = useRef(null);
 
@@ -158,8 +67,7 @@ const KenKenEditor = ({ state, onChange }: Props) => {
     e.preventDefault();
 
     // Don't allow selecting cells that are already in a partition
-    const existingPartition = getPartitionForCell(state, row, col);
-    if (existingPartition) {
+    if (partitionForCell(state.partitions, { row, col })) {
       return;
     }
 
@@ -200,11 +108,10 @@ const KenKenEditor = ({ state, onChange }: Props) => {
       dragStart &&
       !selectedCells.some((cell) => cell.row === row && cell.col === col)
     ) {
+      const target = { row, col };
       // Don't allow selecting cells that are already in a partition
-      const existingPartition = getPartitionForCell(state, row, col);
-      if (!existingPartition) {
-        // Add cell to selection if not already selected
-        setSelectedCells((prev) => [...prev, { row, col }]);
+      if (!partitionForCell(state.partitions, target)) {
+        setSelectedCells((prev) => [...prev, target]);
       }
     }
   };
@@ -231,31 +138,17 @@ const KenKenEditor = ({ state, onChange }: Props) => {
 
   // Create partition from selected cells
   const createPartition = () => {
-    console.log("Creating partition with:", {
-      selectedCells,
-      currentTarget,
-      currentOperation,
-    });
-
-    if (selectedCells.length === 0) {
-      console.log("No cells selected");
-      return;
-    }
-
-    if (!currentTarget) {
-      console.log("No target value");
+    if (selectedCells.length === 0 || !currentTarget) {
       return;
     }
 
     const targetValue = parseInt(currentTarget);
     if (isNaN(targetValue) || targetValue <= 0) {
-      console.log("Invalid target value:", currentTarget);
       return;
     }
 
     // Check if cells are connected
     if (!areaCellsConnected(selectedCells)) {
-      alert("Selected cells must form a connected region!");
       return;
     }
 
@@ -266,42 +159,23 @@ const KenKenEditor = ({ state, onChange }: Props) => {
       target: targetValue,
     };
 
-    console.log("New partition:", newPartition);
-
     // Remove any existing partitions that overlap with selected cells
-    const filteredPartitions = state.partitions.filter((partition) => {
-      // Check if this partition has any overlapping cells
-      const hasOverlap = partition.cells.some((partitionCell) =>
-        selectedCells.some(
-          (selectedCell) =>
-            selectedCell.row === partitionCell.row &&
-            selectedCell.col === partitionCell.col
+    const filteredPartitions = state.partitions.filter(
+      (partition) =>
+        !partition.cells.some((partitionCell) =>
+          selectedCells.some((selectedCell) =>
+            cellEquals(selectedCell, partitionCell)
+          )
         )
-      );
-      return !hasOverlap;
-    });
+    );
 
-    const newState = {
+    handleChange({
       ...state,
       partitions: [...filteredPartitions, newPartition],
       nextId: (state.nextId || 0) + 1,
-    };
-
-    console.log("New state:", newState);
-    handleChange(newState);
+    });
     setSelectedCells([]);
     setCurrentTarget("");
-  };
-
-  // Delete partition
-  const deletePartition = (partitionId: number) => {
-    const newState = {
-      ...state,
-      partitions: state.partitions.filter(
-        (partition) => partition.id !== partitionId
-      ),
-    };
-    handleChange(newState);
   };
 
   // Change board size
@@ -309,48 +183,34 @@ const KenKenEditor = ({ state, onChange }: Props) => {
     // Ensure size is an integer >= 2
     const size = Math.max(2, Math.floor(newSize));
 
-    const newState = {
-      ...state,
-      size,
-      partitions: state.partitions.filter((partition) =>
-        partition.cells.every((cell) => cell.row < size && cell.col < size)
-      ),
-    };
-
     // Clear selection if any selected cells are outside the new board
     if (selectedCells.some((cell) => cell.row >= size || cell.col >= size)) {
       setSelectedCells([]);
     }
 
-    handleChange(newState);
+    handleChange({
+      ...state,
+      size,
+      partitions: state.partitions.filter((partition) =>
+        partition.cells.every((cell) => cell.row < size && cell.col < size)
+      ),
+    });
   };
 
   // Clear all partitions
-  const clearBoard = () => {
-    const newState = {
+  const clearBoard = () =>
+    handleChange({
       ...state,
       partitions: [],
-    };
-    handleChange(newState);
-  };
+    });
 
   // Check if cell is selected
-  const isCellSelected = (row: number, col: number) => {
-    return selectedCells.some((cell) => cell.row === row && cell.col === col);
-  };
-
-  const OPERATORS = [
-    { op: "+", icon: <Plus size={16} /> },
-    { op: "-", icon: <Minus size={16} /> },
-    { op: "*", icon: <X size={16} /> },
-    { op: "/", icon: <Divide size={16} /> },
-  ];
+  const isCellSelected = (target: Cell) =>
+    selectedCells.some((cell) => cellEquals(cell, target));
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <h2 className="text-2xl font-bold mb-6 text-center">
-        KenKen Puzzle Editor
-      </h2>
+    <div className="py-7 max-w-4xl">
+      <h2 className="text-3xl font-bold mb-6">KenKen Puzzle Editor</h2>
 
       {/* Controls */}
       <div className="mb-6 space-y-4">
@@ -390,14 +250,14 @@ const KenKenEditor = ({ state, onChange }: Props) => {
         <div className="flex items-center gap-4 flex-wrap">
           <label className="font-medium w-32">Create Partition:</label>
           <div className="flex gap-2">
-            {OPERATORS.map(({ op, icon }) => (
-              <Operator
+            {ALL_OPERATORS.map(({ op, icon }) => (
+              <OperatorButton
                 key={op}
                 op={op}
                 currentOperation={currentOperation}
                 disabled={selectedCells.length === 1}
                 onNewOperation={setCurrentOperation}
-                icon={icon}
+                Icon={icon}
               />
             ))}
           </div>
@@ -439,12 +299,11 @@ const KenKenEditor = ({ state, onChange }: Props) => {
             {Array.from({ length: state.size }, (_, row) => (
               <div key={row} className="flex">
                 {Array.from({ length: state.size }, (_, col) => {
-                  const partition = getPartitionForCell(state, row, col);
-                  const isSelected = isCellSelected(row, col);
+                  const target = { row, col };
+                  const partition = partitionForCell(state.partitions, target);
+                  const isSelected = isCellSelected(target);
                   const isTopLeft =
-                    partition &&
-                    partition.cells[0].row === row &&
-                    partition.cells[0].col === col;
+                    partition && cellEquals(partition.cells[0], target);
 
                   return (
                     <div
@@ -472,8 +331,8 @@ const KenKenEditor = ({ state, onChange }: Props) => {
                       {isTopLeft && (
                         <div className="absolute top-0 left-0 text-xs font-bold p-1 leading-none z-10 text-gray-600">
                           {partition.target}
-                          {partition.operator
-                            ? getOperatorSymbol(partition.operator)
+                          {partition.operator !== null
+                            ? OPERATOR_SYMBOLS[partition.operator]
                             : ""}
                         </div>
                       )}
@@ -501,12 +360,20 @@ const KenKenEditor = ({ state, onChange }: Props) => {
                 <div className="flex justify-between items-start mb-2">
                   <div className="font-medium text-black">
                     {partition.target}
-                    {partition.operator
-                      ? getOperatorSymbol(partition.operator)
+                    {partition.operator !== null
+                      ? OPERATOR_SYMBOLS[partition.operator]
                       : ""}
                   </div>
                   <button
-                    onClick={() => deletePartition(partition.id)}
+                    onClick={() =>
+                      handleChange({
+                        ...state,
+                        partitions: deletePartition(
+                          state.partitions,
+                          partition.id
+                        ),
+                      })
+                    }
                     className="text-red-500 hover:text-red-700"
                   >
                     <Trash2 size={14} />
