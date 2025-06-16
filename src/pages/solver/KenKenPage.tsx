@@ -40,16 +40,16 @@ const getPartitionForCell = (state: EditorState, row: number, col: number) => {
 };
 
 const PARTITION_COLORS = [
-  "bg-red-100 border-red-300",
-  "bg-blue-100 border-blue-300",
-  "bg-green-100 border-green-300",
-  "bg-yellow-100 border-yellow-300",
-  "bg-purple-100 border-purple-300",
-  "bg-pink-100 border-pink-300",
-  "bg-indigo-100 border-indigo-300",
-  "bg-orange-100 border-orange-300",
-  "bg-teal-100 border-teal-300",
-  "bg-gray-100 border-gray-300",
+  "bg-red-200 border-red-400",
+  "bg-blue-200 border-blue-400",
+  "bg-green-200 border-green-400",
+  "bg-yellow-200 border-yellow-400",
+  "bg-purple-200 border-purple-400",
+  "bg-pink-200 border-pink-400",
+  "bg-indigo-200 border-indigo-400",
+  "bg-orange-200 border-orange-400",
+  "bg-teal-200 border-teal-400",
+  "bg-gray-200 border-gray-400",
 ];
 
 // Get partition color based on stable ID
@@ -108,6 +108,36 @@ const areaCellsConnected = (cells: Cell[]) => {
 
   return visited.size === cells.length;
 };
+
+type OperatorProps = {
+  disabled: boolean;
+  currentOperation: string;
+  onNewOperation: (op: string) => void;
+  op: string;
+  icon: React.ReactNode;
+};
+
+const Operator = ({
+  currentOperation,
+  disabled,
+  icon,
+  onNewOperation,
+  op,
+}: OperatorProps) => (
+  <button
+    onClick={() => onNewOperation(op)}
+    disabled={disabled}
+    className={`px-3 py-2 rounded ${
+      disabled
+        ? "bg-gray-400 text-gray-500 cursor-not-allowed"
+        : currentOperation === op
+        ? "bg-blue-600"
+        : "bg-gray-300 text-black hover:text-white hover:bg-blue-400"
+    }`}
+  >
+    {icon}
+  </button>
+);
 
 const KenKenEditor = ({ state, onChange }: Props) => {
   const [selectedCells, setSelectedCells] = useState<Cell[]>([]);
@@ -309,8 +339,15 @@ const KenKenEditor = ({ state, onChange }: Props) => {
     return selectedCells.some((cell) => cell.row === row && cell.col === col);
   };
 
+  const OPERATORS = [
+    { op: "+", icon: <Plus size={16} /> },
+    { op: "-", icon: <Minus size={16} /> },
+    { op: "*", icon: <X size={16} /> },
+    { op: "/", icon: <Divide size={16} /> },
+  ];
+
   return (
-    <div className="p-6 bg-white rounded-lg shadow-lg max-w-4xl mx-auto">
+    <div className="p-6 max-w-4xl mx-auto">
       <h2 className="text-2xl font-bold mb-6 text-center">
         KenKen Puzzle Editor
       </h2>
@@ -318,22 +355,34 @@ const KenKenEditor = ({ state, onChange }: Props) => {
       {/* Controls */}
       <div className="mb-6 space-y-4">
         {/* Board Size */}
-        <div className="flex items-center gap-4">
-          <label className="font-medium w-32">Board Size:</label>
-          <div className="flex items-center gap-2">
-            <input
-              type="number"
-              value={state.size}
-              onChange={(e) => {
-                const value = parseInt(e.target.value);
-                if (!isNaN(value) && value >= 2) {
-                  changeBoardSize(value);
-                }
-              }}
-              className="border rounded px-3 py-1 w-20"
-              min="2"
-              max="9"
-            />
+        <div className="flex justify-between">
+          <div className="flex items-center gap-4">
+            <label className="font-medium w-32">Board Size:</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                value={state.size}
+                onChange={(e) => {
+                  const value = parseInt(e.target.value);
+                  if (!isNaN(value) && value >= 2) {
+                    changeBoardSize(value);
+                  }
+                }}
+                className="border rounded px-3 py-1 w-20"
+                min="2"
+                max="9"
+              />
+            </div>
+          </div>
+          {/* Clear Board */}
+          <div className="flex gap-2">
+            <button
+              onClick={clearBoard}
+              className="px-4 py-2 bg-red-500 text-white rounded flex items-center gap-2"
+            >
+              <RotateCcw size={16} />
+              Clear Board
+            </button>
           </div>
         </div>
 
@@ -341,58 +390,16 @@ const KenKenEditor = ({ state, onChange }: Props) => {
         <div className="flex items-center gap-4 flex-wrap">
           <label className="font-medium w-32">Create Partition:</label>
           <div className="flex gap-2">
-            <button
-              onClick={() => setCurrentOperation("+")}
-              disabled={selectedCells.length === 1}
-              className={`px-3 py-2 rounded ${
-                selectedCells.length === 1
-                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  : currentOperation === "+"
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-200 hover:bg-gray-300"
-              }`}
-            >
-              <Plus size={16} />
-            </button>
-            <button
-              onClick={() => setCurrentOperation("-")}
-              disabled={selectedCells.length === 1}
-              className={`px-3 py-2 rounded ${
-                selectedCells.length === 1
-                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  : currentOperation === "-"
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-200 hover:bg-gray-300"
-              }`}
-            >
-              <Minus size={16} />
-            </button>
-            <button
-              onClick={() => setCurrentOperation("*")}
-              disabled={selectedCells.length === 1}
-              className={`px-3 py-2 rounded ${
-                selectedCells.length === 1
-                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  : currentOperation === "*"
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-200 hover:bg-gray-300"
-              }`}
-            >
-              <X size={16} />
-            </button>
-            <button
-              onClick={() => setCurrentOperation("/")}
-              disabled={selectedCells.length === 1}
-              className={`px-3 py-2 rounded ${
-                selectedCells.length === 1
-                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  : currentOperation === "/"
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-200 hover:bg-gray-300"
-              }`}
-            >
-              <Divide size={16} />
-            </button>
+            {OPERATORS.map(({ op, icon }) => (
+              <Operator
+                key={op}
+                op={op}
+                currentOperation={currentOperation}
+                disabled={selectedCells.length === 1}
+                onNewOperation={setCurrentOperation}
+                icon={icon}
+              />
+            ))}
           </div>
           <input
             type="number"
@@ -400,39 +407,30 @@ const KenKenEditor = ({ state, onChange }: Props) => {
             value={currentTarget}
             onChange={(e) => setCurrentTarget(e.target.value)}
             className="border rounded px-3 py-2 w-20"
+            style={{ minWidth: "6rem" }}
             min="1"
           />
           <button
             onClick={createPartition}
             disabled={selectedCells.length === 0 || !currentTarget}
-            className="px-4 py-2 bg-green-500 text-white rounded disabled:bg-gray-300"
+            className="px-4 py-2 bg-green-500 text-white rounded disabled:bg-gray-500"
+            style={{ minWidth: "12rem" }}
           >
             Add Partition ({selectedCells.length} cells)
           </button>
           <button
             onClick={resetSelection}
             disabled={selectedCells.length === 0 && !currentTarget}
-            className="px-4 py-2 bg-gray-500 text-white rounded disabled:bg-gray-300"
+            className="px-4 py-2 bg-gray-400 text-white rounded disabled:bg-gray-500"
           >
             Reset
-          </button>
-        </div>
-
-        {/* Clear Board */}
-        <div className="flex gap-2">
-          <button
-            onClick={clearBoard}
-            className="px-4 py-2 bg-red-500 text-white rounded flex items-center gap-2"
-          >
-            <RotateCcw size={16} />
-            Clear Board
           </button>
         </div>
       </div>
 
       {/* Game Board */}
-      <div className="flex gap-6">
-        <div className="flex-1">
+      <div className="flex gap-6 justify-between">
+        <div className="flex flex-1 justify-center items-center">
           <div
             ref={boardRef}
             className="inline-block border-2 border-black"
@@ -472,7 +470,7 @@ const KenKenEditor = ({ state, onChange }: Props) => {
                         <div className="absolute inset-0 bg-blue-300 bg-opacity-50 border-2 border-blue-600 pointer-events-none"></div>
                       )}
                       {isTopLeft && (
-                        <div className="absolute top-0 left-0 text-xs font-bold p-1 leading-none z-10">
+                        <div className="absolute top-0 left-0 text-xs font-bold p-1 leading-none z-10 text-gray-600">
                           {partition.target}
                           {partition.operator
                             ? getOperatorSymbol(partition.operator)
@@ -501,7 +499,7 @@ const KenKenEditor = ({ state, onChange }: Props) => {
                 )}`}
               >
                 <div className="flex justify-between items-start mb-2">
-                  <div className="font-medium">
+                  <div className="font-medium text-black">
                     {partition.target}
                     {partition.operator
                       ? getOperatorSymbol(partition.operator)
@@ -527,9 +525,9 @@ const KenKenEditor = ({ state, onChange }: Props) => {
       </div>
 
       {/* Instructions */}
-      <div className="mt-6 p-4 bg-gray-100 rounded">
+      <div className="mt-6 p-4 border-2 border-gray-300 rounded">
         <h4 className="font-bold mb-2">How to use:</h4>
-        <ul className="text-sm space-y-1 text-gray-700">
+        <ul className="text-sm space-y-1">
           <li>
             • <strong>Click</strong> a cell to start selecting
           </li>
