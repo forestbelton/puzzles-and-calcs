@@ -15,7 +15,13 @@ const init = async () => {
   loaded = true;
 
   // @ts-ignore
-  Module = await window.SWIPL();
+  Module = await window.SWIPL({
+    on_output: (msg: string, stream: string) => {
+      if (stream == "stderr") {
+        console.error(msg);
+      }
+    },
+  });
   Prolog = Module.prolog;
 };
 
@@ -51,7 +57,7 @@ const generateProlog = (size: number, partitions: Partition[]) => {
     switch (operator) {
       case null:
         all_partitions.push(
-          `    ${name(cells[0].col, cells[0].row)} #= ${target},`
+          `  ${name(cells[0].col, cells[0].row)} #= ${target},`
         );
         break;
       case Operator.ADD:
@@ -81,7 +87,7 @@ const generateProlog = (size: number, partitions: Partition[]) => {
           .slice(1)
           .reduce(
             (acc, { col, row }) => `${acc} * ${name(col, row)}`,
-            name(cells[0].row, cells[0].col)
+            name(cells[0].col, cells[0].row)
           );
         all_partitions.push(`  ${prod} #= ${target},`);
         break;
@@ -123,11 +129,17 @@ solve(S) :-
 
 export const solve = async (size: number, partitions: Partition[]) => {
   const prologSource = generateProlog(size, partitions);
+  console.log(prologSource);
 
   await init();
   await Prolog.load_string(prologSource);
 
+  console.log("Beginning solve...");
+  const start = +new Date();
   const [result] = await Prolog.forEach("solve(S)");
+  const elapsed = (+new Date() - start) / 1000;
+  console.log(`Solve done. Took ${elapsed} seconds.`);
+
   const board: number[][] = [];
 
   for (let y = 0; y < size; ++y) {
