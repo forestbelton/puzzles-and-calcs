@@ -2,7 +2,24 @@ import { Operator, Partition } from "./types";
 
 const name = (x: number, y: number) => `X${x}${y}`;
 
-export const generateProlog = (size: number, partitions: Partition[]) => {
+let loaded = false;
+
+let Module: any;
+let Prolog: any;
+
+const init = async () => {
+  if (loaded) {
+    return;
+  }
+
+  loaded = true;
+
+  // @ts-ignore
+  Module = await window.SWIPL();
+  Prolog = Module.prolog;
+};
+
+const generateProlog = (size: number, partitions: Partition[]) => {
   const vars = [];
   for (let y = 0; y < size; ++y) {
     for (let x = 0; x < size; ++x) {
@@ -48,11 +65,11 @@ export const generateProlog = (size: number, partitions: Partition[]) => {
         break;
       case Operator.SUB:
         let subs = [
-          `${name(cells[0].col, cells[0].row)} + ${target} = ${name(
+          `${name(cells[0].col, cells[0].row)} + ${target} #= ${name(
             cells[1].col,
             cells[1].row
           )}`,
-          `${name(cells[1].col, cells[1].row)} + ${target} = ${name(
+          `${name(cells[1].col, cells[1].row)} + ${target} #= ${name(
             cells[0].col,
             cells[0].row
           )}`,
@@ -70,11 +87,11 @@ export const generateProlog = (size: number, partitions: Partition[]) => {
         break;
       case Operator.DIV:
         let divs = [
-          `${name(cells[0].col, cells[0].row)} * ${target} = ${name(
+          `${name(cells[0].col, cells[0].row)} * ${target} #= ${name(
             cells[1].col,
             cells[1].row
           )}`,
-          `${name(cells[1].col, cells[1].row)} * ${target} = ${name(
+          `${name(cells[1].col, cells[1].row)} * ${target} #= ${name(
             cells[0].col,
             cells[0].row
           )}`,
@@ -102,4 +119,25 @@ solve(S) :-
   kenken_puzzle(${all_vars}),
   S = [${all_vars}].
 `.trim();
+};
+
+export const solve = async (size: number, partitions: Partition[]) => {
+  const prologSource = generateProlog(size, partitions);
+
+  await init();
+  await Prolog.load_string(prologSource);
+
+  const [result] = await Prolog.forEach("solve(S)");
+  const board: number[][] = [];
+
+  for (let y = 0; y < size; ++y) {
+    const row: number[] = [];
+    for (let x = 0; x < size; ++x) {
+      row.push(result.S[y * size + x]);
+    }
+    board.push(row);
+  }
+
+  console.log(board);
+  return board;
 };

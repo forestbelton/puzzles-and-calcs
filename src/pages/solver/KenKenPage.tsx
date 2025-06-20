@@ -15,17 +15,19 @@ import {
   partitionCoversBoard,
   partitionForCell,
 } from "./kenken/types";
-import { generateProlog } from "./kenken/solve";
+import { solve } from "./kenken/solve";
 
 type EditorState = {
   nextId?: number;
   size: number;
   partitions: Partition[];
+  solution: number[][] | null;
 };
 
 export const emptyState = (): EditorState => ({
   size: 4,
   partitions: [],
+  solution: null,
 });
 
 type Props = {
@@ -204,11 +206,16 @@ const KenKenEditor = ({ state, onChange }: Props) => {
     handleChange({
       ...state,
       partitions: [],
+      solution: null,
     });
 
   const solveBoard = () => {
-    const plg = generateProlog(state.size, state.partitions);
-    console.log(plg);
+    (async () => {
+      handleChange({
+        ...state,
+        solution: await solve(state.size, state.partitions),
+      });
+    })();
   };
 
   // Check if cell is selected
@@ -325,7 +332,7 @@ const KenKenEditor = ({ state, onChange }: Props) => {
                     <div
                       key={col}
                       className={`
-                        w-12 h-12 border border-gray-400 relative
+                        w-12 h-12 border border-gray-400 relative text-black text-center flex items-center justify-center font-bold
                         ${partition ? getPartitionColor(partition) : "bg-white"}
                         ${
                           isSelected
@@ -352,6 +359,7 @@ const KenKenEditor = ({ state, onChange }: Props) => {
                             : ""}
                         </div>
                       )}
+                      {state.solution !== null && state.solution[row][col]}
                     </div>
                   );
                 })}
