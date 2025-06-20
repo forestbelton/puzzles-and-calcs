@@ -12,8 +12,10 @@ import {
   deletePartition,
   Operator,
   Partition,
+  partitionCoversBoard,
   partitionForCell,
 } from "./kenken/types";
+import { generateProlog } from "./kenken/solve";
 
 type EditorState = {
   nextId?: number;
@@ -204,6 +206,11 @@ const KenKenEditor = ({ state, onChange }: Props) => {
       partitions: [],
     });
 
+  const solveBoard = () => {
+    const plg = generateProlog(state.size, state.partitions);
+    console.log(plg);
+  };
+
   // Check if cell is selected
   const isCellSelected = (target: Cell) =>
     selectedCells.some((cell) => cellEquals(cell, target));
@@ -234,8 +241,17 @@ const KenKenEditor = ({ state, onChange }: Props) => {
               />
             </div>
           </div>
-          {/* Clear Board */}
           <div className="flex gap-2">
+            {/* Solve Board */}
+            <button
+              onClick={solveBoard}
+              disabled={!partitionCoversBoard(state.size, state.partitions)}
+              className="px-4 py-2 bg-red-500 text-white rounded flex items-center gap-2"
+            >
+              Solve Board
+            </button>
+
+            {/* Clear Board */}
             <button
               onClick={clearBoard}
               className="px-4 py-2 bg-red-500 text-white rounded flex items-center gap-2"
