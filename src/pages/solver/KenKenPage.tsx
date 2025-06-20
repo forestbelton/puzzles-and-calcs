@@ -224,7 +224,7 @@ const KenKenEditor = ({ state, onChange }: Props) => {
 
   return (
     <div className="py-7 max-w-4xl">
-      <h2 className="text-3xl font-bold mb-6">KenKen Puzzle Editor</h2>
+      <h2 className="text-3xl font-bold mb-6">KenKen</h2>
 
       {/* Controls */}
       <div className="mb-6 space-y-4">
