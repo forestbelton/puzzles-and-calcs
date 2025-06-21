@@ -16,23 +16,30 @@ const init = async () => {
 
   // @ts-ignore
   Module = await window.SWIPL({
-    on_output: (msg: string, stream: string) => {
-      if (stream == "stderr") {
-        console.error(msg);
-      }
-    },
+    on_output: () => {},
   });
   Prolog = Module.prolog;
 };
 
+const OPERATOR_SORT_VALUES: Record<Operator | "", number> = {
+  [""]: -1,
+  [Operator.ADD]: 0,
+  [Operator.MUL]: 1,
+  [Operator.SUB]: 2,
+  [Operator.DIV]: 3,
+};
+
 const generateProlog = (size: number, partitions: Partition[]) => {
-  const vars = [];
+  const board = [];
+  const rows = [];
   for (let y = 0; y < size; ++y) {
+    board.push(`Row${y}`);
+    const row = [];
     for (let x = 0; x < size; ++x) {
-      vars.push(name(x, y));
+      row.push(name(x, y));
     }
+    rows.push(`  Row${y} = [${row.join(", ")}],`);
   }
-  const all_vars = vars.join(",");
 
   const all_rows = [];
   for (let y = 0; y < size; ++y) {
@@ -52,6 +59,23 @@ const generateProlog = (size: number, partitions: Partition[]) => {
     all_columns.push(`  all_distinct([${row.join(",")}]),`);
   }
 
+  // Place strongest constraints first
+  partitions.sort((p, q) => {
+    const cellDifference = p.cells.length - q.cells.length;
+    if (cellDifference !== 0) {
+      return cellDifference;
+    }
+
+    const operatorDifference =
+      OPERATOR_SORT_VALUES[p.operator || ""] -
+      OPERATOR_SORT_VALUES[q.operator || ""];
+    if (operatorDifference !== 0) {
+      return operatorDifference;
+    }
+
+    return p.target - q.target;
+  });
+
   const all_partitions: string[] = [];
   for (const { operator, cells, target } of partitions) {
     switch (operator) {
@@ -70,17 +94,11 @@ const generateProlog = (size: number, partitions: Partition[]) => {
         all_partitions.push(`  ${sum} #= ${target},`);
         break;
       case Operator.SUB:
-        let subs = [
-          `${name(cells[0].col, cells[0].row)} + ${target} #= ${name(
-            cells[1].col,
-            cells[1].row
-          )}`,
-          `${name(cells[1].col, cells[1].row)} + ${target} #= ${name(
-            cells[0].col,
-            cells[0].row
-          )}`,
-        ];
-        all_partitions.push(`  (${subs.join(";")}),`);
+        all_partitions.push(
+          `  abs(${cells
+            .map(({ col, row }) => name(col, row))
+            .join("-")}) #= ${target},`
+        );
         break;
       case Operator.MUL:
         let prod = cells
@@ -92,25 +110,28 @@ const generateProlog = (size: number, partitions: Partition[]) => {
         all_partitions.push(`  ${prod} #= ${target},`);
         break;
       case Operator.DIV:
-        let divs = [
-          `${name(cells[0].col, cells[0].row)} * ${target} #= ${name(
-            cells[1].col,
-            cells[1].row
-          )}`,
-          `${name(cells[1].col, cells[1].row)} * ${target} #= ${name(
-            cells[0].col,
-            cells[0].row
-          )}`,
-        ];
-        all_partitions.push(`  (${divs.join(";")}),`);
+        all_partitions.push(
+          `  divide(${cells
+            .map(({ col, row }) => name(col, row))
+            .join(",")},${target}),`
+        );
         break;
     }
   }
 
   return `
 :- use_module(library(clpfd)).
-kenken_puzzle(${all_vars}) :-
-  Vars = [${all_vars}],
+
+divide(X, Y, Target) :-
+  Larger #= max(X, Y),
+  Smaller #= min(X, Y),
+  Larger #= Smaller * Target.
+
+solve(Board) :-
+  Board = [${board.join(", ")}],
+${rows.join("\n")}
+
+  append(Board, Vars),
   Vars ins 1..${size},
 
 ${all_rows.join("\n")}
@@ -120,10 +141,6 @@ ${all_columns.join("\n")}
 ${all_partitions.join("\n")}
 
   labeling([ff], Vars).
-
-solve(S) :-
-  kenken_puzzle(${all_vars}),
-  S = [${all_vars}].
 `.trim();
 };
 
@@ -132,6 +149,8 @@ export const solve = async (size: number, partitions: Partition[]) => {
   console.log(prologSource);
 
   await init();
+  await Prolog.unregister_atom("divide");
+  await Prolog.unregister_atom("solve");
   await Prolog.load_string(prologSource);
 
   console.log("Beginning solve...");
@@ -145,7 +164,7 @@ export const solve = async (size: number, partitions: Partition[]) => {
   for (let y = 0; y < size; ++y) {
     const row: number[] = [];
     for (let x = 0; x < size; ++x) {
-      row.push(result.S[y * size + x]);
+      row.push(result.S[y][x]);
     }
     board.push(row);
   }
