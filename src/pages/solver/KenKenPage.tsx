@@ -22,12 +22,14 @@ type EditorState = {
   size: number;
   partitions: Partition[];
   solution: number[][] | null;
+  solving: boolean;
 };
 
 export const emptyState = (): EditorState => ({
   size: 4,
   partitions: [],
   solution: null,
+  solving: false,
 });
 
 type Props = {
@@ -207,13 +209,24 @@ const KenKenEditor = ({ state, onChange }: Props) => {
       ...state,
       partitions: [],
       solution: null,
+      solving: false,
     });
 
   const solveBoard = () => {
+    if (state.solving) {
+      return;
+    }
+
+    handleChange({
+      ...state,
+      solving: true,
+    });
+
     (async () => {
       handleChange({
         ...state,
         solution: await solve(state.size, state.partitions),
+        solving: false,
       });
     })();
   };
@@ -221,6 +234,9 @@ const KenKenEditor = ({ state, onChange }: Props) => {
   // Check if cell is selected
   const isCellSelected = (target: Cell) =>
     selectedCells.some((cell) => cellEquals(cell, target));
+
+  const solveDisabled =
+    state.solving || !partitionCoversBoard(state.size, state.partitions);
 
   return (
     <div className="py-7 max-w-4xl">
@@ -252,8 +268,11 @@ const KenKenEditor = ({ state, onChange }: Props) => {
             {/* Solve Board */}
             <button
               onClick={solveBoard}
-              disabled={!partitionCoversBoard(state.size, state.partitions)}
-              className="px-4 py-2 bg-red-500 text-white rounded flex items-center gap-2"
+              disabled={solveDisabled}
+              className={
+                "px-4 py-2 text-white rounded flex items-center gap-2 " +
+                (solveDisabled ? "bg-gray-500" : "bg-green-500")
+              }
             >
               Solve Board
             </button>
